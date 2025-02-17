@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 
+#include <minidumpapiset.h>
+
 INT_PTR g_iLogHandle = -1;
 
 static void SetupExceptionHandler()
@@ -11,6 +13,7 @@ static void SetupExceptionHandler()
 	BT_SetAppName(_T("BugTrap Console Test"));
 	BT_SetSupportEMail(_T("your@email.com"));
 	BT_SetFlags(BTF_DETAILEDMODE | BTF_ATTACHREPORT);
+	BT_SetDumpType(MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules); 
 
 	// = BugTrapServer ===========================================
 	BT_SetSupportServer(_T("localhost"), 9999);
