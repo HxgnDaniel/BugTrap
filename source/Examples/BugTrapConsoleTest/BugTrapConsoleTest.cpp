@@ -14,7 +14,7 @@ static void SetupExceptionHandler()
 	BT_SetSupportEMail(_T("your@email.com"));
 	BT_SetFlags(BTF_DETAILEDMODE | BTF_ATTACHREPORT);
 	BT_SetDumpType(MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpWithHandleData | MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules); 
-
+	BT_SetActivityType(BTA_SAVEREPORTWITHPROGRESS);
 	// = BugTrapServer ===========================================
 	BT_SetSupportServer(_T("localhost"), 9999);
 	// - or -
