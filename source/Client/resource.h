@@ -44,6 +44,7 @@
 #define IDS_COLUMN_PID                  138
 #define IDS_COLUMN_PROCESS              139
 #define IDS_COLUMN_VERSION              140
+#define IDD_WRITEPROGRESS_DLG           140
 #define IDS_COLUMN_BASE                 141
 #define IDS_COLUMN_TYPE                 142
 #define IDS_COLUMN_SIZE                 143
@@ -107,7 +108,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        140
+#define _APS_NEXT_RESOURCE_VALUE        142
 #define _APS_NEXT_COMMAND_VALUE         40001
 #define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101

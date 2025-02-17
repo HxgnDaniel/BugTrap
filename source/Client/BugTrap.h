@@ -71,6 +71,8 @@ typedef enum BUGTRAP_ACTIVITY_tag
 	* @brief Call custom handler specified by BT_SetCustomActivityHandler().
 	*/
 	BTA_CUSTOM = 5,
+
+	BTA_SAVEREPORTWITHPROGRESS = 6,
 }
 BUGTRAP_ACTIVITY;
 

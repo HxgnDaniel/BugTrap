@@ -27,6 +27,7 @@
 #include "Encoding.h"
 #include "MemStream.h"
 #include "VersionInfoString.h"
+#include "WriteProgressDlg.h"
 
 #ifdef _MANAGED
 #include "NetThunks.h"
@@ -108,23 +109,23 @@ BOOL SendEMail(HWND hwndParent, PCTSTR pszSubject, PCTSTR pszMessage)
 		if (g_pMapiSession == NULL)
 			return FALSE;
 	}
-	if (! g_pMapiSession->LoggedOn())
+	if (!g_pMapiSession->LoggedOn())
 	{
 		if (*g_szMailProfile)
 		{
-			if (! g_pMapiSession->Logon(g_szMailProfile, g_szMailPassword))
+			if (!g_pMapiSession->Logon(g_szMailProfile, g_szMailPassword))
 				return FALSE;
 		}
 		else if (g_bShowUI)
 		{
 			wait.EndWait();
-			if (! g_pMapiSession->Logon(hwndParent))
+			if (!g_pMapiSession->Logon(hwndParent))
 				return FALSE;
 			wait.BeginWait();
 		}
 		else
 		{
-			if (! g_pMapiSession->Logon())
+			if (!g_pMapiSession->Logon())
 				return FALSE;
 		}
 	}
@@ -261,8 +262,8 @@ void CTransferThreadParams::SetErrorCode(DWORD dwErrorCode)
 	if (dwErrorCode != ERROR_SUCCESS)
 	{
 		FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
-		              NULL, dwErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-		              (PTSTR)&pszMessageBuffer, 0, NULL);
+			NULL, dwErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+			(PTSTR)&pszMessageBuffer, 0, NULL);
 		if (pszMessageBuffer)
 			TrimSpaces(pszMessageBuffer);
 	}
@@ -297,7 +298,7 @@ static DWORD WaitForPendingSocketRequest(CTransferThreadParams* pTransferThreadP
  */
 static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferThreadParams)
 {
-	typedef BOOL (WINAPI *PFCancelIo)(HANDLE hFile); /// Type definition of pointer to CancelIO() function.
+	typedef BOOL(WINAPI* PFCancelIo)(HANDLE hFile); /// Type definition of pointer to CancelIO() function.
 	HMODULE hKernelDll = GetModuleHandle(_T("KERNEL32.DLL"));
 	PFCancelIo FCancelIo = hKernelDll ? (PFCancelIo)GetProcAddress(hKernelDll, "CancelIo") : NULL;
 	HWND hwndSink = pTransferThreadParams->GetSinkWnd();
@@ -311,14 +312,14 @@ static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferT
 		const DWORD dwReportFileExtensionSize = sizeof(DWORD) + 8 * sizeof(DWORD);
 		const DWORD dwNotificationEMailSize = sizeof(DWORD) + countof(g_szNotificationEMail) * sizeof(DWORD);
 		const DWORD dwMaxHeaderSize =
-						sizeof(DWORD) +            // Protocol signature
-						sizeof(DWORD) +            // Data size
-						sizeof(BYTE) +             // Message type
-						sizeof(DWORD) +            // Message flags
-						dwAppNameSize +             // Application name
-						dwAppVersionSize +          // Application version
-						dwReportFileExtensionSize + // Report file extension
-						dwNotificationEMailSize;    // Notification e-mail
+			sizeof(DWORD) +            // Protocol signature
+			sizeof(DWORD) +            // Data size
+			sizeof(BYTE) +             // Message type
+			sizeof(DWORD) +            // Message flags
+			dwAppNameSize +             // Application name
+			dwAppVersionSize +          // Application version
+			dwReportFileExtensionSize + // Report file extension
+			dwNotificationEMailSize;    // Notification e-mail
 
 		DWORD dwFileSize = GetFileSize(hFile, NULL);
 		DWORD dwBufferSize = max(dwMaxHeaderSize, min(dwFileSize, g_dwMaxBufferSize));
@@ -416,14 +417,14 @@ static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferT
 						nHeaderPosition += sizeof(DWORD);
 
 						// Application name.
-						if (! WriteBinaryString(EncStream, g_szAppName, pBuffer, nHeaderPosition, dwBufferSize))
+						if (!WriteBinaryString(EncStream, g_szAppName, pBuffer, nHeaderPosition, dwBufferSize))
 						{
 							dwErrorCode = ERROR_INTERNAL_ERROR;
 							goto end; // Internal error.
 						}
 
 						// Application version.
-						if (! WriteBinaryString(EncStream, g_szAppVersion, pBuffer, nHeaderPosition, dwBufferSize))
+						if (!WriteBinaryString(EncStream, g_szAppVersion, pBuffer, nHeaderPosition, dwBufferSize))
 						{
 							dwErrorCode = ERROR_INTERNAL_ERROR;
 							goto end; // Internal error.
@@ -431,14 +432,14 @@ static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferT
 
 						// Report file extension.
 						PCTSTR pszReportFileExtension = CSymEngine::GetReportFileExtension();
-						if (! WriteBinaryString(EncStream, pszReportFileExtension, pBuffer, nHeaderPosition, dwBufferSize))
+						if (!WriteBinaryString(EncStream, pszReportFileExtension, pBuffer, nHeaderPosition, dwBufferSize))
 						{
 							dwErrorCode = ERROR_INTERNAL_ERROR;
 							goto end; // Internal error.
 						}
 
 						// Notification e-mail.
-						if (! WriteBinaryString(EncStream, g_szNotificationEMail, pBuffer, nHeaderPosition, dwBufferSize))
+						if (!WriteBinaryString(EncStream, g_szNotificationEMail, pBuffer, nHeaderPosition, dwBufferSize))
 						{
 							dwErrorCode = ERROR_INTERNAL_ERROR;
 							goto end; // Internal error.
@@ -467,7 +468,7 @@ static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferT
 									if (dwErrorCode != ERROR_SUCCESS)
 										goto end;
 									DWORD dwFlags;
-									if (! WSAGetOverlappedResult(sock, &ov, &dwProcessedNumber, FALSE, &dwFlags))
+									if (!WSAGetOverlappedResult(sock, &ov, &dwProcessedNumber, FALSE, &dwFlags))
 									{
 										dwErrorCode = WSAGetLastError();
 										goto end; // Internal error.
@@ -476,14 +477,14 @@ static DWORD WSASendReport(PCTSTR pszHostName, CTransferThreadParams* pTransferT
 								buf.buf += dwProcessedNumber;
 								buf.len -= dwProcessedNumber;
 							}
-							if (! ReadFile(hFile, pBuffer, dwBufferSize, &dwPacketSize, NULL) || dwPacketSize == 0)
+							if (!ReadFile(hFile, pBuffer, dwBufferSize, &dwPacketSize, NULL) || dwPacketSize == 0)
 							{
 								if (hwndSink)
 									PostMessage(hwndSink, UM_CHECKINGERRORSTATUS, 0, 0);
 								goto end; // End of file.
 							}
 						}
-end:
+					end:
 						if (dwErrorCode == ERROR_SUCCESS)
 						{
 							// Initiate graceful shutdown.
@@ -530,8 +531,8 @@ static void SetInternetErrorMessage(CTransferThreadParams* pTransferThreadParams
 	HANDLE hWinInetDll = GetModuleHandle(_T("wininet.dll"));
 	PTSTR pszMessageBuffer = NULL;
 	DWORD dwBaseMessageLength = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE,
-	                                          hWinInetDll, dwErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-	                                          (PTSTR)&pszMessageBuffer, 0, NULL);
+		hWinInetDll, dwErrorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
+		(PTSTR)&pszMessageBuffer, 0, NULL);
 	if (pszMessageBuffer == NULL)
 	{
 		pTransferThreadParams->SetErrorCode(dwErrorCode);
@@ -579,32 +580,32 @@ static void PrintInternetStatus(DWORD dwInternetStatus, PVOID pvStatusInformatio
 
 	switch (dwInternetStatus)
 	{
-	CONVERT_INTERNET_STATUS_TO_STRING(RESOLVING_NAME);
-	CONVERT_INTERNET_STATUS_TO_STRING(NAME_RESOLVED);
-	CONVERT_INTERNET_STATUS_TO_STRING(CONNECTING_TO_SERVER);
-	CONVERT_INTERNET_STATUS_TO_STRING(CONNECTED_TO_SERVER);
-	CONVERT_INTERNET_STATUS_TO_STRING(SENDING_REQUEST);
-	CONVERT_INTERNET_STATUS_TO_STRING(REQUEST_SENT);
-	CONVERT_INTERNET_STATUS_TO_STRING(RECEIVING_RESPONSE);
-	CONVERT_INTERNET_STATUS_TO_STRING(RESPONSE_RECEIVED);
-	CONVERT_INTERNET_STATUS_TO_STRING(CTL_RESPONSE_RECEIVED);
-	CONVERT_INTERNET_STATUS_TO_STRING(PREFETCH);
-	CONVERT_INTERNET_STATUS_TO_STRING(CLOSING_CONNECTION);
-	CONVERT_INTERNET_STATUS_TO_STRING(CONNECTION_CLOSED);
-	CONVERT_INTERNET_STATUS_TO_STRING(HANDLE_CREATED);
-	CONVERT_INTERNET_STATUS_TO_STRING(HANDLE_CLOSING);
-	CONVERT_INTERNET_STATUS_TO_STRING(DETECTING_PROXY);
-	CONVERT_INTERNET_STATUS_TO_STRING(REQUEST_COMPLETE);
-	CONVERT_INTERNET_STATUS_TO_STRING(REDIRECT);
-	CONVERT_INTERNET_STATUS_TO_STRING(INTERMEDIATE_RESPONSE);
-	CONVERT_INTERNET_STATUS_TO_STRING(USER_INPUT_REQUIRED);
-	CONVERT_INTERNET_STATUS_TO_STRING(STATE_CHANGE);
-	CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_SENT);
-	CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_RECEIVED);
-	CONVERT_INTERNET_STATUS_TO_STRING(PRIVACY_IMPACTED);
-	CONVERT_INTERNET_STATUS_TO_STRING(P3P_HEADER);
-	CONVERT_INTERNET_STATUS_TO_STRING(P3P_POLICYREF);
-	CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_HISTORY);
+		CONVERT_INTERNET_STATUS_TO_STRING(RESOLVING_NAME);
+		CONVERT_INTERNET_STATUS_TO_STRING(NAME_RESOLVED);
+		CONVERT_INTERNET_STATUS_TO_STRING(CONNECTING_TO_SERVER);
+		CONVERT_INTERNET_STATUS_TO_STRING(CONNECTED_TO_SERVER);
+		CONVERT_INTERNET_STATUS_TO_STRING(SENDING_REQUEST);
+		CONVERT_INTERNET_STATUS_TO_STRING(REQUEST_SENT);
+		CONVERT_INTERNET_STATUS_TO_STRING(RECEIVING_RESPONSE);
+		CONVERT_INTERNET_STATUS_TO_STRING(RESPONSE_RECEIVED);
+		CONVERT_INTERNET_STATUS_TO_STRING(CTL_RESPONSE_RECEIVED);
+		CONVERT_INTERNET_STATUS_TO_STRING(PREFETCH);
+		CONVERT_INTERNET_STATUS_TO_STRING(CLOSING_CONNECTION);
+		CONVERT_INTERNET_STATUS_TO_STRING(CONNECTION_CLOSED);
+		CONVERT_INTERNET_STATUS_TO_STRING(HANDLE_CREATED);
+		CONVERT_INTERNET_STATUS_TO_STRING(HANDLE_CLOSING);
+		CONVERT_INTERNET_STATUS_TO_STRING(DETECTING_PROXY);
+		CONVERT_INTERNET_STATUS_TO_STRING(REQUEST_COMPLETE);
+		CONVERT_INTERNET_STATUS_TO_STRING(REDIRECT);
+		CONVERT_INTERNET_STATUS_TO_STRING(INTERMEDIATE_RESPONSE);
+		CONVERT_INTERNET_STATUS_TO_STRING(USER_INPUT_REQUIRED);
+		CONVERT_INTERNET_STATUS_TO_STRING(STATE_CHANGE);
+		CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_SENT);
+		CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_RECEIVED);
+		CONVERT_INTERNET_STATUS_TO_STRING(PRIVACY_IMPACTED);
+		CONVERT_INTERNET_STATUS_TO_STRING(P3P_HEADER);
+		CONVERT_INTERNET_STATUS_TO_STRING(P3P_POLICYREF);
+		CONVERT_INTERNET_STATUS_TO_STRING(COOKIE_HISTORY);
 	default:
 		_stprintf_s(szInternetStatusBuffer, countof(szInternetStatusBuffer), _T("0x%08lX"), dwInternetStatus);
 		pszInternetStatus = szInternetStatusBuffer;
@@ -617,11 +618,11 @@ static void PrintInternetStatus(DWORD dwInternetStatus, PVOID pvStatusInformatio
 		_ASSERTE(dwStatusInformationLength == sizeof(DWORD));
 		switch (*(PDWORD)pvStatusInformation)
 		{
-		CONVERT_INTERNET_STATE_TO_STRING(CONNECTED);
-		CONVERT_INTERNET_STATE_TO_STRING(DISCONNECTED);
-		CONVERT_INTERNET_STATE_TO_STRING(DISCONNECTED_BY_USER);
-		CONVERT_INTERNET_STATE_TO_STRING(IDLE);
-		CONVERT_INTERNET_STATE_TO_STRING(BUSY);
+			CONVERT_INTERNET_STATE_TO_STRING(CONNECTED);
+			CONVERT_INTERNET_STATE_TO_STRING(DISCONNECTED);
+			CONVERT_INTERNET_STATE_TO_STRING(DISCONNECTED_BY_USER);
+			CONVERT_INTERNET_STATE_TO_STRING(IDLE);
+			CONVERT_INTERNET_STATE_TO_STRING(BUSY);
 		default:
 			_stprintf_s(szInternetStateBuffer, countof(szInternetStateBuffer), _T("0x%08lX"), *(PDWORD)pvStatusInformation);
 			pszInternetState = szInternetStateBuffer;
@@ -762,9 +763,9 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 			if (pBuffer != NULL)
 			{
 				TCHAR szUserName[INTERNET_MAX_USER_NAME_LENGTH],
-				      szPassword[INTERNET_MAX_PASSWORD_LENGTH],
-				      szHostName[INTERNET_MAX_HOST_NAME_LENGTH],
-				      szUrlPath[INTERNET_MAX_PATH_LENGTH];
+					szPassword[INTERNET_MAX_PASSWORD_LENGTH],
+					szHostName[INTERNET_MAX_HOST_NAME_LENGTH],
+					szUrlPath[INTERNET_MAX_PATH_LENGTH];
 				URL_COMPONENTS urlComponents;
 				ZeroMemory(&urlComponents, sizeof(urlComponents));
 				urlComponents.dwStructSize = sizeof(urlComponents);
@@ -869,7 +870,7 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 #ifdef _DEBUG
 										OutputDebugString(_T("HttpSendRequestEx()\n"));
 #endif
-										if (! HttpSendRequestEx(hRequest, &InetBuf, NULL, 0, 456))
+										if (!HttpSendRequestEx(hRequest, &InetBuf, NULL, 0, 456))
 											dwErrorCode = WaitForPendingInternetRequest(pTransferThreadParams);
 
 										if (dwErrorCode == ERROR_SUCCESS)
@@ -889,7 +890,7 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 												while (dwNumBytes > 0)
 												{
 													DWORD dwBytesWritten = 0;
-													if (! InternetWriteFile(hRequest, pBytes, dwNumBytes, &dwBytesWritten))
+													if (!InternetWriteFile(hRequest, pBytes, dwNumBytes, &dwBytesWritten))
 													{
 														dwErrorCode = WaitForPendingInternetRequest(pTransferThreadParams);
 														if (dwErrorCode != ERROR_SUCCESS)
@@ -904,7 +905,7 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 												if (bDataEnd)
 													break;
 												DWORD dwBytesRead = 0;
-												if (! ReadFile(hFile, pBuffer, dwBufferSize, &dwBytesRead, NULL) || dwBytesRead == 0)
+												if (!ReadFile(hFile, pBuffer, dwBufferSize, &dwBytesRead, NULL) || dwBytesRead == 0)
 												{
 													bDataEnd = TRUE;
 													pBytes = (const BYTE*)szTrailer;
@@ -926,7 +927,7 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 #ifdef _DEBUG
 												OutputDebugString(_T("HttpEndRequest()\n"));
 #endif
-												if (! HttpEndRequest(hRequest, NULL, 0, NULL))
+												if (!HttpEndRequest(hRequest, NULL, 0, NULL))
 													dwErrorCode = WaitForPendingInternetRequest(pTransferThreadParams);
 #ifdef _DEBUG
 												if (dwErrorCode == ERROR_SUCCESS)
@@ -937,7 +938,7 @@ static DWORD HTTPSendReport(PCTSTR pszSupportUrl, CTransferThreadParams* pTransf
 													{
 														CHAR arrBuffer[1024];
 														DWORD dwBytesRead = 0;
-														if (! InternetReadFile(hRequest, arrBuffer, sizeof(arrBuffer) - 1, &dwBytesRead))
+														if (!InternetReadFile(hRequest, arrBuffer, sizeof(arrBuffer) - 1, &dwBytesRead))
 														{
 															dwErrorCode = GetLastError();
 															if (dwErrorCode != ERROR_IO_PENDING)
@@ -1155,13 +1156,13 @@ void InitIntro(HWND hwnd, CHyperLink& hlURL)
 	if (*g_szAppName)
 		SetWindowText(hwnd, g_szAppName);
 
-	if (! g_strFirstIntroMesage.IsEmpty())
+	if (!g_strFirstIntroMesage.IsEmpty())
 	{
 		hwndCtl = GetDlgItem(hwnd, IDC_INTRO1);
 		SetWindowText(hwndCtl, g_strFirstIntroMesage);
 	}
 
-	if (! g_strSecondIntroMesage.IsEmpty())
+	if (!g_strSecondIntroMesage.IsEmpty())
 	{
 		hwndCtl = GetDlgItem(hwnd, IDC_INTRO2);
 		SetWindowText(hwndCtl, g_strSecondIntroMesage);
@@ -1221,7 +1222,7 @@ static PCTSTR GetReportFileName(PCTSTR pszFileName, PTSTR szFileNameBuffer)
 {
 	_ASSERTE(g_pSymEngine != NULL);
 	bool bGenerateFileName = pszFileName == NULL || *pszFileName == _T('\0');
-	if (bGenerateFileName || ! PathIsRoot(pszFileName))
+	if (bGenerateFileName || !PathIsRoot(pszFileName))
 	{
 		PCTSTR pszReportFolder = BT_GetReportFilePath();
 		if (bGenerateFileName)
@@ -1275,7 +1276,7 @@ static BOOL CreateTempReport(void)
 		// Generate report files in temporary location.
 		CreateTempFolder(g_szInternalReportFolder, countof(g_szInternalReportFolder));
 		bResult = g_pSymEngine->WriteReportFiles(g_szInternalReportFolder, g_pEnumProc) &&
-		          g_pSymEngine->ArchiveReportFiles(g_szInternalReportFolder, g_szInternalReportFilePath);
+			g_pSymEngine->ArchiveReportFiles(g_szInternalReportFolder, g_szInternalReportFilePath);
 	}
 	else
 	{
@@ -1307,7 +1308,7 @@ BOOL SendReport(void)
 {
 	if (*g_szSupportHost == _T('\0') || g_nSupportPort == 0)
 		return FALSE;
-	if (! CreateTempReport())
+	if (!CreateTempReport())
 		return FALSE;
 	BOOL bResult = SendTempReport(NULL);
 	DeleteTempReport();
@@ -1323,7 +1324,7 @@ BOOL MailReport(void)
 {
 	if (*g_szSupportEMail == _T('\0'))
 		return FALSE;
-	if (! CreateTempReport())
+	if (!CreateTempReport())
 		return FALSE;
 	BOOL bResult = MailTempReport(NULL);
 	DeleteTempReport();
@@ -1335,8 +1336,13 @@ BOOL MailReport(void)
  */
 static void ExecuteHandlerAction(void)
 {
-	if (g_eActivityType == BTA_SAVEREPORT)
+	if (g_eActivityType == BTA_SAVEREPORT || g_eActivityType == BTA_SAVEREPORTWITHPROGRESS)
 	{
+		CWriteProgressDialog wait;
+		if (g_eActivityType == BTA_SAVEREPORTWITHPROGRESS)
+		{
+			wait.BeginWait(NULL);
+		}
 		SaveReport(NULL);
 		return;
 	}
@@ -1364,10 +1370,10 @@ static void ExecuteHandlerAction(void)
 			break;
 		case BTA_CUSTOM:
 #ifdef _MANAGED
-            NetThunks::FireCustomActivityEvent(g_szInternalReportFilePath);
+			NetThunks::FireCustomActivityEvent(g_szInternalReportFilePath);
 #else
-            if (g_pfnCustomActivityHandler != NULL)
-                (*g_pfnCustomActivityHandler)(g_szInternalReportFilePath, g_nCustomActivityHandlerParam);
+			if (g_pfnCustomActivityHandler != NULL)
+				(*g_pfnCustomActivityHandler)(g_szInternalReportFilePath, g_nCustomActivityHandlerParam);
 #endif // _MANAGED
 
 			break;
@@ -1439,8 +1445,9 @@ static void HideAppWindow(HWND hwndParent)
 			// Ping parent window
 			if (SendMessageTimeout(hwndParent, WM_NULL, 0l, 0l, SMTO_ABORTIFHUNG, SEND_MSG_TIMEOUT, &dwResult))
 				ShowWindow(hwndParent, SW_HIDE);
-		} __except (EXCEPTION_EXECUTE_HANDLER) {
-			// ignore any exception in broken app...
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER) {
+		 // ignore any exception in broken app...
 		}
 	}
 }
@@ -1455,7 +1462,7 @@ void StartHandlerThread(void)
 		return;
 	// Execute BugTrap action.
 	HWND hwndParent;
-	if (g_eActivityType == BTA_SHOWUI)
+	if (g_eActivityType == BTA_SHOWUI || g_eActivityType == BTA_SAVEREPORTWITHPROGRESS)
 	{
 		g_bShowUI = TRUE;
 		hwndParent = GetAppWindow();
@@ -1512,7 +1519,7 @@ LONG InternalFilter(PEXCEPTION_POINTERS pExceptionPointers)
 					ExInfo.ClientPointers = TRUE;
 					BOOL bResult = FMiniDumpWriteDump(hProcess, dwProcessID, hFile, MiniDumpWithDataSegs, &ExInfo, NULL, NULL);
 					CloseHandle(hFile);
-					if (! bResult)
+					if (!bResult)
 						DeleteFile(szDumpFileName);
 				}
 			}

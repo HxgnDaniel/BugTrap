@@ -838,6 +838,7 @@
     <ClCompile Include="SymEngineNet.cpp" />
     <ClCompile Include="TextLogFile.cpp" />
     <ClCompile Include="ThemeXP.cpp" />
+    <ClCompile Include="WriteProgressDlg.cpp" />
     <ClCompile Include="XmlLogFile.cpp" />
     <ClCompile Include="BugTrap.cpp" />
     <ClCompile Include="BugTrapNet.cpp" />
@@ -909,6 +910,7 @@
     <ClInclude Include="SymEngineNet.h" />
     <ClInclude Include="TextLogFile.h" />
     <ClInclude Include="ThemeXP.h" />
+    <ClInclude Include="WriteProgressDlg.h" />
     <ClInclude Include="XmlLogFile.h" />
     <ClInclude Include="BTAtlWindow.h" />
     <ClInclude Include="BTMfcWindow.h" />
